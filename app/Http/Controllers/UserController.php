@@ -17,6 +17,7 @@ class UserController extends Controller
 
         foreach ($users as $user) {
             $user->tick = !!$user->tick;
+            $user->followed = !!$user->followed;
         }
 
         return response()->json(["data" => $users]);
@@ -28,8 +29,10 @@ class UserController extends Controller
         $type = $request->query('type');
         $amouts = 0;
 
-        switch ($type)
-        {
+        switch ($type) {
+        case '':
+            $amouts = 5;
+            break;
         case 'less':
             $amouts = 5;
             break;
@@ -50,6 +53,7 @@ class UserController extends Controller
         }
 
         $users = $users->sortByDesc('followings_count')->values();
+        $users->makeHidden(['followed']);
 
         return response()->json(["data" => $users]);
     }
@@ -64,6 +68,8 @@ class UserController extends Controller
         $user->bio = $req->bio;
         $user->tick = $req->tick ? 1 : 0;
         $user->followings_count = (int) $req->followings_count;
+        $user->likes_count = (int) $req->likes_count;
+        $user->followed = false;
 
         if ($req->hasFile('avatar')) {
             $file = $req->file('avatar');
@@ -107,5 +113,21 @@ class UserController extends Controller
         } else {
             return ["Result" => "Update failed"];
         }
+    }
+
+    public function suggestedAccounts(Request $request)
+    {
+        $amounts = $request->query('amounts') ?: 3;
+        $users = User::where('followed', false)
+            ->where('tick', true)
+            ->take($amounts)
+            ->get(["id", "full_name", "nickname", "tick", "avatar", "followings_count", "likes_count"]);
+        $users = $users->sortByDesc('followings_count')->values();
+
+        foreach ($users as $user) {
+            $user->tick = !!$user->tick;
+        }
+
+        return response()->json(["data" => $users]);
     }
 }

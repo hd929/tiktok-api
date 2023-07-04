@@ -21,6 +21,8 @@ return new class extends Migration
             $table->string('bio');
             $table->boolean('tick');
             $table->bigInteger('followings_count')->unsigned();
+            $table->bigInteger('likes_count')->unsigned();
+            $table->boolean('followed');
             $table->timestamps();
         });
     }
