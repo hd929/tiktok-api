@@ -1,0 +1,34 @@
+networks:
+  tiktok-api:
+
+services:
+  laravel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html/
+    depends_on:
+      - mysql_db
+    networks:
+      - tiktok-api
+
+  mysql_db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_HOST: ${DB_HOST}
+    volumes:
+      - .:/var/lib/mysql
+    networks:
+      - tiktok-api
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - 8000:80
+    volumes:
+      - .:/var/www
+      - .docker-compose/nginx:/etc/nginx/conf.d/
