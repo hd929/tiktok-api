@@ -14,7 +14,6 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./laravel:/var/www/html
-      - .:/var/www/html
     ports:
       - "9000:9000"
   mysql:
@@ -24,10 +23,10 @@ services:
     volumes:
       - ./mysql:/var/lib/mysql
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: tiktok_api
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin@123
+      MYSQL_ROOT_PASSWORD: root
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
     ports:
@@ -35,6 +34,6 @@ services:
     environment:
       - PMA_HOSTS=mysql
       - PMA_PORT=3306
-      - PMA_USER=pocadi123
-      - PMA_PASSWORD=pocadi123
+      - PMA_USER=admin
+      - PMA_PASSWORD=admin@123
 
