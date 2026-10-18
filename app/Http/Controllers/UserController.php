@@ -73,7 +73,7 @@ class UserController extends Controller
 
         if ($req->hasFile('avatar')) {
             $file = $req->file('avatar');
-            $path = $file->store('public/avatars');
+            $path = $file->store('avatars', 'public');
             $url = Storage::url($path);
 
             $user->avatar = asset($url);
@@ -110,15 +110,30 @@ class UserController extends Controller
 
         // Chỉ cập nhật khi field có trong payload, tránh ghi đè bằng null.
         if ($req->filled('name')) {
-            $user->name = $req->name;
+            $user->full_name = $req->name;
         }
 
         if ($req->filled('email')) {
             $user->email = $req->email;
         }
 
+        if ($req->filled('nickname')) {
+            $user->nickname = $req->nickname;
+        }
+
+        if ($req->filled('bio')) {
+            $user->bio = $req->bio;
+        }
+
         if ($req->has('followed')) {
             $user->followed = filter_var($req->followed, FILTER_VALIDATE_BOOLEAN);
+        }
+
+        // Avatar upload: lưu vào disk 'public' (thư mục storage/app/public),
+        // Storage::url sẽ trả /storage/avatars/... (public/storage symlink tới đây).
+        if ($req->hasFile('avatar')) {
+            $path = $req->file('avatar')->store('avatars', 'public');
+            $user->avatar = asset(Storage::url($path));
         }
 
         $result = $user->save();
@@ -129,6 +144,8 @@ class UserController extends Controller
                 "user" => [
                     "id" => $user->id,
                     "nickname" => $user->nickname,
+                    "full_name" => $user->full_name,
+                    "avatar" => $user->avatar,
                     "followed" => (bool) $user->followed,
                 ],
             ];

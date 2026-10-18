@@ -2,7 +2,6 @@ laravel/.phpunit.cache
 laravel/node_modules
 laravel/public/build
 laravel/public/hot
-laravel/public/storage
 laravel/storage/*.key
 laravel/vendor
 .env
@@ -18,3 +17,7 @@ laravel/.fleet
 laravel/.idea
 laravel/.vscode
 mysql
+
+# Project-specific: storage symlink and user-uploaded avatars
+/public/storage
+/storage/app/public/avatars/

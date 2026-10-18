@@ -19,7 +19,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['*'],
+    // Token-based auth: frontend gửi Authorization header nên phải liệt kê
+    // ở allowed_headers (dấu * không luôn được browser preflight chấp nhận).
+    'allowed_origins' => ['http://localhost:3000', 'http://localhost:8080'],
 
     'allowed_origins_patterns' => [],
 
@@ -29,6 +31,8 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => false,
+    // SPA dùng cookie Sanctum thì cần true; với token-based cũng giữ true
+    // để các request same-origin có thể dùng cookie khi cần.
+    'supports_credentials' => true,
 
 ];

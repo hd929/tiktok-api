@@ -12,6 +12,9 @@ RUN apk add --no-cache \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" pdo_mysql zip gd mbstring bcmath opcache
 
+# Giới hạn mặc định (2M/8M) quá nhỏ cho upload video.
+COPY docker/php-uploads.ini /usr/local/etc/php/conf.d/zz-uploads.ini
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
