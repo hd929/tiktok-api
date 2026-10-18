@@ -103,13 +103,35 @@ class UserController extends Controller
     public function update(Request $req)
     {
         $user = User::find($req->id);
-        $user->name = $req->name ? $req->name : $user->name;
-        $user->email = $req->email ? $req->email : $user->email;
+
+        if (!$user) {
+            return response()->json(["Result" => "User not found"], 404);
+        }
+
+        // Chỉ cập nhật khi field có trong payload, tránh ghi đè bằng null.
+        if ($req->filled('name')) {
+            $user->name = $req->name;
+        }
+
+        if ($req->filled('email')) {
+            $user->email = $req->email;
+        }
+
+        if ($req->has('followed')) {
+            $user->followed = filter_var($req->followed, FILTER_VALIDATE_BOOLEAN);
+        }
 
         $result = $user->save();
 
         if ($result) {
-            return ["Result"  => "Data is updated"];
+            return [
+                "Result" => "Data is updated",
+                "user" => [
+                    "id" => $user->id,
+                    "nickname" => $user->nickname,
+                    "followed" => (bool) $user->followed,
+                ],
+            ];
         } else {
             return ["Result" => "Update failed"];
         }
@@ -117,15 +139,30 @@ class UserController extends Controller
 
     public function suggestedAccounts(Request $request)
     {
-        $amounts = $request->query('amounts') ?: 3;
-        $users = User::where('followed', false)
-            ->where('tick', true)
+        $amounts = (int) ($request->query('amounts') ?: 3);
+
+        // Trước đây giá trị này bị hardcode false nên "Following accounts"
+        // luôn trả về cùng dữ liệu với "Suggested accounts".
+        $followed = filter_var($request->query('followed'), FILTER_VALIDATE_BOOLEAN);
+
+        $query = User::query();
+
+        if ($followed) {
+            // Tài khoản bạn đang theo dõi: bỏ điều kiện tick.
+            $query->where('followed', true);
+        } else {
+            // Gợi ý: chưa theo dõi và là tài khoản đã xác thực.
+            $query->where('followed', false)->where('tick', true);
+        }
+
+        $users = $query
+            ->orderByDesc('followings_count')
             ->take($amounts)
-            ->get(["id", "full_name", "nickname", "tick", "avatar", "followings_count", "likes_count"]);
-        $users = $users->sortByDesc('followings_count')->values();
+            ->get(["id", "full_name", "nickname", "tick", "avatar", "followings_count", "likes_count", "followed"]);
 
         foreach ($users as $user) {
-            $user->tick = !!$user->tick;
+            $user->tick = (bool) $user->tick;
+            $user->followed = (bool) $user->followed;
         }
 
         return response()->json(["data" => $users]);
